@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pastel & Soft Gradient Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background 0.6s ease;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+<body id="bg-target" class="min-h-screen flex flex-col justify-between text-slate-800 p-4 md:p-8">
+
+  <!-- Header -->
+  <header class="max-w-3xl mx-auto w-full mb-6">
+    <div class="glass-card rounded-2xl px-6 py-4 shadow-sm flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div id="logo-preview" class="w-9 h-9 rounded-xl shadow-inner border border-white/60 transition-all duration-500"></div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 tracking-tight">Pastel Gradient Generator</h1>
+          <p class="text-xs text-slate-600">優しく美しいパステルグラデーション生成ツール</p>
+        </div>
+      </div>
+      <button onclick="generateNewGradient()" class="glass-pill text-xs font-semibold px-3 py-2 rounded-xl text-slate-700 hover:bg-white/90 transition flex items-center gap-1.5 shadow-sm active:scale-95">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span>[Space] キーでも生成</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Showcase Container -->
+  <main class="max-w-3xl mx-auto w-full flex-1 flex flex-col justify-center gap-6">
+
+    <!-- Card Output -->
+    <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl transition-all duration-300">
+      
+      <!-- Palette Badges -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-700 bg-white/70 px-3 py-1 rounded-full border border-white/80">3色グラデーション</span>
+          <span id="angle-tag" class="text-xs font-mono text-slate-600 bg-white/50 px-2.5 py-1 rounded-full border border-white/60">135deg</span>
+        </div>
+        
+        <!-- Preset Type Toggle -->
+        <div class="flex gap-1 bg-black/5 p-1 rounded-xl text-xs font-medium">
+          <button onclick="setMode('pastel')" id="btn-pastel" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition">パステル</button>
+          <button onclick="setMode('vibrant')" id="btn-vibrant" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">鮮やか</button>
+          <button onclick="setMode('sunset')" id="btn-sunset" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">夕焼け風</button>
+        </div>
+      </div>
+
+      <!-- Color Swatches Display -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-white/60 border border-white/80 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div id="swatch-0" class="w-10 h-10 rounded-xl shadow-inner border border-slate-200/50 transition-colors duration-500"></div>
+            <div>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Color 1 (0%)</p>
+              <p id="hex-0" class="text-sm font-bold font-mono text-slate-800">#FBE0EC</p>
+            </div>
+          </div>
+          <button onclick="copySingleHex(0)" title="HEXをコピー" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-white/60 border border-white/80 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div id="swatch-1" class="w-10 h-10 rounded-xl shadow-inner border border-slate-200/50 transition-colors duration-500"></div>
+            <div>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Color 2 (50%)</p>
+              <p id="hex-1" class="text-sm font-bold font-mono text-slate-800">#F3DFF5</p>
+            </div>
+          </div>
+          <button onclick="copySingleHex(1)" title="HEXをコピー" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-white/60 border border-white/80 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div id="swatch-2" class="w-10 h-10 rounded-xl shadow-inner border border-slate-200/50 transition-colors duration-500"></div>
+            <div>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Color 3 (100%)</p>
+              <p id="hex-2" class="text-sm font-bold font-mono text-slate-800">#E9E0FF</p>
+            </div>
+          </div>
+          <button onclick="copySingleHex(2)" title="HEXをコピー" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button onclick="generateNewGradient()" class="flex-1 py-4 px-6 rounded-2xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition-all duration-200 flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10 active:scale-[0.99]">
+          <i data-lucide="sparkles" class="w-4 h-4 text-pink-300"></i>
+          <span>ランダム生成する</span>
+        </button>
+
+        <button onclick="copyCSSCode()" class="py-4 px-6 rounded-2xl bg-white/80 hover:bg-white text-slate-800 font-semibold text-sm border border-white transition flex items-center justify-center gap-2 shadow-sm">
+          <i data-lucide="code" class="w-4 h-4 text-slate-600"></i>
+          <span>CSSをコピー</span>
+        </button>
+
+        <button onclick="copyTailwindCode()" class="py-4 px-6 rounded-2xl bg-white/80 hover:bg-white text-slate-800 font-semibold text-sm border border-white transition flex items-center justify-center gap-2 shadow-sm">
+          <i data-lucide="wind" class="w-4 h-4 text-sky-500"></i>
+          <span>Tailwind</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Live Toast Message -->
+    <div id="toast" class="opacity-0 pointer-events-none transition-all duration-300 transform translate-y-2 max-w-sm mx-auto w-full p-3 rounded-2xl bg-slate-900/90 backdrop-blur-md text-white text-xs font-medium text-center shadow-2xl flex items-center justify-center gap-2">
+      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toast-text">クリップボードにコピーしました！</span>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="max-w-3xl mx-auto w-full mt-6 text-center text-xs text-slate-600">
+    <p>Press <kbd class="px-2 py-0.5 bg-white/60 border border-white/80 rounded-md font-mono text-slate-800 shadow-sm">Space</kbd> key anywhere to generate next gradient</p>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    // State Variables
+    let currentColors = ['#FBE0EC', '#F3DFF5', '#E9E0FF'];
+    let currentAngle = 135;
+    let currentMode = 'pastel'; // pastel, vibrant, sunset
+
+    // HSL Helper to generate soft aesthetic pastel colors
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = s * Math.min(l, 1 - l) / 100;
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+    }
+
+    // Generate random color based on selected mode
+    function getRandomColor(mode, baseHue, step) {
+      let h, s, l;
+
+      if (mode === 'pastel') {
+        // High lightness (85-93%), moderate saturation (60-85%) for soft dreamy colors
+        h = (baseHue + step) % 360;
+        s = Math.floor(Math.random() * 25) + 60;
+        l = Math.floor(Math.random() * 8) + 85;
+      } else if (mode === 'vibrant') {
+        // Rich, lively colors
+        h = (baseHue + step) % 360;
+        s = Math.floor(Math.random() * 30) + 70;
+        l = Math.floor(Math.random() * 20) + 65;
+      } else if (mode === 'sunset') {
+        // Hues restricted around red, orange, pink, purple, warm yellow (320° to 50°)
+        const sunsetHues = [330, 345, 10, 25, 40, 280, 300];
+        const randomBase = sunsetHues[Math.floor(Math.random() * sunsetHues.length)];
+        h = (randomBase + Math.floor(Math.random() * 30 - 15) + 360) % 360;
+        s = Math.floor(Math.random() * 25) + 70;
+        l = Math.floor(Math.random() * 12) + 80;
+      }
+
+      return hslToHex(h, s, l);
+    }
+
+    // Generate full gradient set
+    function generateNewGradient() {
+      const baseHue = Math.floor(Math.random() * 360);
+      const angleOptions = [135, 120, 90, 45, 160, 180];
+      currentAngle = angleOptions[Math.floor(Math.random() * angleOptions.length)];
+
+      // Harmonious hue shifts between color stops
+      const hueShifts = [0, 25 + Math.floor(Math.random() * 20), 50 + Math.floor(Math.random() * 30)];
+
+      currentColors = [
+        getRandomColor(currentMode, baseHue, hueShifts[0]),
+        getRandomColor(currentMode, baseHue, hueShifts[1]),
+        getRandomColor(currentMode, baseHue, hueShifts[2])
+      ];
+
+      updateUI();
+    }
+
+    // Update screen display and background
+    function updateUI() {
+      const gradientCSS = `linear-gradient(${currentAngle}deg, ${currentColors[0]} 0%, ${currentColors[1]} 50%, ${currentColors[2]} 100%)`;
+      
+      // Update background and previews
+      document.getElementById('bg-target').style.background = gradientCSS;
+      document.getElementById('logo-preview').style.background = gradientCSS;
+
+      // Update Swatches & Hex values
+      currentColors.forEach((color, index) => {
+        document.getElementById(`swatch-${index}`).style.backgroundColor = color;
+        document.getElementById(`hex-${index}`).innerText = color;
+      });
+
+      // Update Angle tag
+      document.getElementById('angle-tag').innerText = `${currentAngle}deg`;
+    }
+
+    // Mode Selector
+    function setMode(mode) {
+      currentMode = mode;
+      ['pastel', 'vibrant', 'sunset'].forEach(m => {
+        const btn = document.getElementById(`btn-${m}`);
+        if (m === mode) {
+          btn.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition font-semibold";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+        }
+      });
+      generateNewGradient();
+    }
+
+    // Copy to Clipboard Utility
+    function copyToClipboard(text, message) {
+      const tempInput = document.createElement("textarea");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+
+      showToast(message);
+    }
+
+    function copyCSSCode() {
+      const css = `background: linear-gradient(${currentAngle}deg, ${currentColors[0]} 0%, ${currentColors[1]} 50%, ${currentColors[2]} 100%);`;
+      copyToClipboard(css, "CSSコードをコピーしました！");
+    }
+
+    function copyTailwindCode() {
+      const tw = `bg-gradient-to-br from-[${currentColors[0]}] via-[${currentColors[1]}] to-[${currentColors[2]}]`;
+      copyToClipboard(tw, "Tailwindクラスをコピーしました！");
+    }
+
+    function copySingleHex(index) {
+      copyToClipboard(currentColors[index], `${currentColors[index]} をコピーしました！`);
+    }
+
+    // Toast Notification
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+      }, 2200);
+    }
+
+    // Spacebar Event Listener for Quick Random Generation
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault();
+        generateNewGradient();
+      }
+    });
+
+    // Initial Load
+    updateUI();
+  </script>
+</body>
+</html>
